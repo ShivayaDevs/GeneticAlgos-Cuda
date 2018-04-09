@@ -9,7 +9,9 @@ major: start.o ga_helper.o Makefile
 	$(NVCC) -o major start.o ga_helper.o $(NVCC_OPTS)
 
 start.o: start.cpp ga_helper.h
-	g++ -c start.cpp $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
+	# Doing only for now since all the code is in one file.
+	$(NVCC) -c start.cpp $(NVCC_OPTS)
+	# g++ -c start.cpp $(GCC_OPTS) -I $(CUDA_INCLUDEPATH)
 
 ga_helper.o: ga_helper.h ga_helper.cu
 	$(NVCC) -c ga_helper.cu $(NVCC_OPTS)
