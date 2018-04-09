@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <string.h>
-//#include <cstdlib>
 #include <time.h>
 #include <algorithm>
 #include <random>
 #include <math.h>
 #include <iostream>
 using namespace std;
-typedef long double genetype;
+typedef long double HighlyPrecise;
 
 const int GENOME_LENGTH = 16;
 const int NUMBER_CHROMOSOMES = 100;
@@ -21,10 +20,10 @@ const float CROSSOVER_RATE = 0.6;
 const int NUM_EPOCHS = 1000;
 
 default_random_engine generator;
-uniform_real_distribution<genetype> geneValueDistribution(GENE_MIN, GENE_MAX);
+uniform_real_distribution<HighlyPrecise> geneValueDistribution(GENE_MIN, GENE_MAX);
 
 class Chromosome {
-	genetype genes[GENOME_LENGTH];
+	HighlyPrecise genes[GENOME_LENGTH];
 
 public:
 
@@ -34,27 +33,32 @@ public:
 		}
 	}
 
-	Chromosome(genetype genes[]) {
-		memcpy(this->genes, genes, GENOME_LENGTH * sizeof(genetype));
+	Chromosome(HighlyPrecise genes[]) {
+		memcpy(this->genes, genes, GENOME_LENGTH * sizeof(HighlyPrecise));
 	}
 
-	genetype* getGenes() {
+	HighlyPrecise* getGenes() {
 		return genes;
 	}
 
-	genetype getFitnessValue() {
-		genetype value = 0.0;
+	/**
+	 * The current fitness function is: Summation (x * x). It needs to be minimized.
+	 */
+	HighlyPrecise getFitnessValue() {
+		HighlyPrecise value = 0.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			value += genes[i] * genes[i];
 		}
-//		printf("FITNESS: %e", value);
 		return value;
 	}
 
+	/**
+	 * Takes two chromosomes and crosses the caller with the arguments and returns the offspring
+	 * as a result.
+	 */
 	Chromosome crossover(Chromosome b) {
-//		printf("CROSSING OVER...\n");
 		int mid = GENOME_LENGTH / 2;
-		genetype offspringGenes[GENOME_LENGTH];
+		HighlyPrecise offspringGenes[GENOME_LENGTH];
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			if (i <= mid) {
 				offspringGenes[i] = genes[i];
@@ -66,22 +70,25 @@ public:
 	}
 
 	void mutate() {
-//		printf("MUTATING...\n");
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			genetype multiplier = geneValueDistribution(generator) / 10;
+			/* Random Multiplier between [-0.1 to 0.1) */
+			HighlyPrecise multiplier = geneValueDistribution(generator) / 10;
 			genes[i] *= multiplier;
 			if (multiplier < -0.1 || multiplier > 0.1) {
-				printf("Multiplier is wrong. %f", multiplier);
+				printf("Multiplier is wrong. %Le", multiplier);
 			}
 		}
 	}
 
+	/**
+	 * Prints the chromosome and its fitness function.
+	 */
 	void print() {
 		printf("Chromosome: ");
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			printf("%e ", genes[i]);
+			printf("%Le ", genes[i]);
 		}
-		printf("\nFitness: %e\n", getFitnessValue());
+		printf("\nFitness: %Le\n", getFitnessValue());
 	}
 
 };
@@ -99,16 +106,13 @@ void startIteration(Chromosome population[]) {
 	std::sort(population, population + NUMBER_CHROMOSOMES, fitnessComparator);
 
 	int offspringStartIndex = num_parents;
-//	printf("Num_parents:%d , NumChromosomes:%d", num_parents, NUMBER_CHROMOSOMES);
-	int count = 0;
 
 	for (int i = offspringStartIndex; i < NUMBER_CHROMOSOMES; i++) {
 		int fatherIndex = parentIndexDistribution(generator);
 		int motherIndex = parentIndexDistribution(generator);
-
-
-		if(motherIndex == fatherIndex) {
-			count++;
+		if (motherIndex == fatherIndex) {
+			// Should we? Because if we won't, there will be duplicate chromosomes.
+			// TODO: Second opinion needed.
 			continue;
 		}
 
@@ -116,17 +120,16 @@ void startIteration(Chromosome population[]) {
 		Chromosome female = population[motherIndex];
 		Chromosome offspring = male.crossover(female);
 
+		// if mutation factor is greater than a random number from (0.0 to 1.0).
 		if (MUTATION_FACTOR >= abs(geneValueDistribution(generator))) {
 			offspring.mutate();
 		}
 		population[i] = offspring;
 	}
-//	printf("Saved you : %d times\n", count);
 }
 
 Chromosome geneticAlgorithm(Chromosome population[]) {
 	for (int z = 0; z < NUM_EPOCHS; z++) {
-		printf("Iteration:%d\n", z);
 		startIteration(population);
 	}
 	std::sort(population, population + NUMBER_CHROMOSOMES, fitnessComparator);
@@ -134,12 +137,10 @@ Chromosome geneticAlgorithm(Chromosome population[]) {
 }
 
 int main() {
-//	srand(time(NULL));
 	Chromosome population[NUMBER_CHROMOSOMES];
-
+	// Start genetic algorithm.
 	Chromosome best = geneticAlgorithm(population);
 	best.print();
-
 	return 0;
 }
 
