@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 #include <algorithm>
 
@@ -16,26 +16,26 @@ const int CROSSOVER_RATE = 0.6;
 const int NUM_EPOCHS = 10000;
 
 class Chromosome {
-	float genes[GENOME_LENGTH];
+	double genes[GENOME_LENGTH];
 
 public:
 
 	Chromosome() {
 		for (int j = 0; j < GENOME_LENGTH; j++) {
-			genes[j] = (2.0f * GENE_MAX * rand()) / RAND_MAX - GENE_MAX;
+			genes[j] = (2.0 * GENE_MAX * rand()) / RAND_MAX - GENE_MAX;
 		}
 	}
 
-	Chromosome(float genes[]) {
-		memcpy(this->genes, genes, GENOME_LENGTH * sizeof(float));
+	Chromosome(double genes[]) {
+		memcpy(this->genes, genes, GENOME_LENGTH * sizeof(double));
 	}
 
-	float* getGenes() {
+	double* getGenes() {
 		return genes;
 	}
 
-	float getFitnessValue() {
-		int value = 0.0;
+	double getFitnessValue() {
+		double value = 0.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			value += genes[i] * genes[i];
 		}
@@ -44,7 +44,7 @@ public:
 
 	Chromosome crossover(Chromosome b) {
 		int mid = GENOME_LENGTH / 2;
-		float offspringGenes[GENOME_LENGTH];
+		double offspringGenes[GENOME_LENGTH];
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			if (i <= mid) {
 				offspringGenes[i] = genes[i];
@@ -57,7 +57,7 @@ public:
 
 	void mutate() {
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			float multiplier = (0.2f * rand()) / RAND_MAX - 0.1;
+			double multiplier = (0.2 * rand()) / RAND_MAX - 0.1;
 			genes[i] *= multiplier;
 			if (multiplier < -0.1 || multiplier > 0.1) {
 				printf("Multiplier is wrong. %f", multiplier);
@@ -68,9 +68,9 @@ public:
 	void print() {
 		printf("Chromosome: ");
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			printf("%f ", genes[i]);
+			printf("%lf ", genes[i]);
 		}
-		printf("\nFitness: %f\n", getFitnessValue());
+		printf("\nFitness: %lf\n", getFitnessValue());
 	}
 
 };
@@ -94,7 +94,7 @@ void startIteration(Chromosome population[]) {
 		Chromosome female = population[motherIndex];
 		Chromosome offspring = male.crossover(female);
 
-		if (MUTATION_FACTOR >= ((float) rand()) / RAND_MAX) {
+		if (MUTATION_FACTOR >= ((double) rand()) / RAND_MAX) {
 			offspring.mutate();
 		}
 		population[i] = offspring;
@@ -111,7 +111,6 @@ Chromosome geneticAlgorithm(Chromosome population[]) {
 int main() {
 	srand(time(NULL));
 	Chromosome population[NUMBER_CHROMOSOMES];
-	printf("Random population generated.");
 
 	Chromosome best = geneticAlgorithm(population);
 	best.print();
