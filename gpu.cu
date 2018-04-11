@@ -4,17 +4,13 @@
 #include <curand_kernel.h>
 #include <algorithm>
 #include <time.h>
+using namespace std;
 
 #define THREADS_PER_BLOCK 100
 #define NUM_BLOCKS 1
 
-using namespace std;
 typedef double HighlyPrecise;
 
-/**
- * TODO: Don't know why this does not give good results on gene length >= 15.
- * Most probably random numbers error.
- */
 const int GENOME_LENGTH = 14;
 
 const float MUTATION_FACTOR = 0.2;
@@ -29,7 +25,6 @@ struct Chromosome {
 
 __global__ void setupRandomStream(unsigned int seed, curandState* states) {
 	int threadIndex = blockDim.x * blockIdx.x + threadIdx.x;
-	/* Make sure that this is seed and might want to reduce the number of states to threadIdx.x .*/
 	curand_init(seed, threadIndex, 0, &states[threadIndex]);
 }
 
@@ -41,6 +36,48 @@ __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
 	return fitnessValue;
 }
 
+/**
+ * The following functions support sorting using quicksort. Check to see if that works better.
+ */
+__device__ void swap(Chromosome a[], int i1, int i2) {
+	Chromosome t = a[i2];
+	a[i2] = a[i1];
+	a[i1] = t;
+}
+
+__device__ int partition(Chromosome arr[], int low, int high) {
+	Chromosome pivot = arr[high];    // pivot
+	int i = (low - 1);  // Index of smaller element
+
+	for (int j = low; j <= high - 1; j++) {
+		// If current element is smaller than or
+		// equal to pivot
+		if (arr[j].fitnessValue <= pivot.fitnessValue) {
+			i++;    // increment index of smaller element
+			swap(arr, i, j);
+		}
+	}
+	swap(arr, i + 1, high);
+	return (i + 1);
+}
+
+__device__ void quickSort(Chromosome arr[], int low, int high) {
+	if (low < high) {
+		/* pi is partitioning index, arr[p] is now
+		 at right place */
+		int pi = partition(arr, low, high);
+
+		// Separately sort elements before
+		// partition and after partition
+		quickSort(arr, low, pi - 1);
+		quickSort(arr, pi + 1, high);
+	}
+}
+
+/**
+ * Sorts the population that is present in the shared memory of one block.
+ * Please note that this sorting is sequential.
+ */
 __device__ void bubbleSort(Chromosome a[]) {
 	int n = THREADS_PER_BLOCK;
 	Chromosome temp;
@@ -55,17 +92,19 @@ __device__ void bubbleSort(Chromosome a[]) {
 			}
 		}
 		if (!changed) {
-			// ADD OPTIMIZATION.
-			// break;
+			break;
 		}
 	}
 }
 
+/**
+ * Prints the whole population of a block from the shared memory.
+ */
 __device__ void printBlockPopulation(Chromosome blockPopulation[]) {
 	for (int i = 0; i < THREADS_PER_BLOCK; i++) {
 		printf("Fitness: %lf | Chromosome: ", blockPopulation[i].fitnessValue);
 		for (int j = 0; j < GENOME_LENGTH; j++) {
-			printf("%.02lf ,", blockPopulation[i].genes[j]);
+			printf("%.03lf ,", blockPopulation[i].genes[j]);
 		}
 		printf("\n");
 	}
@@ -92,7 +131,8 @@ __global__ void geneticAlgorithm(curandState* states) {
 		if ((threadIdx.x == 0) == 1) {
 //			printf("==> Before sorting:\n");
 //			printBlockPopulation(blockPopulation);
-			bubbleSort(blockPopulation);
+			quickSort(blockPopulation, 0, THREADS_PER_BLOCK - 1);
+//			bubbleSort(blockPopulation);
 //			printf("  ==> After sorting:\n");
 //			printBlockPopulation(blockPopulation);
 		}
@@ -148,7 +188,9 @@ __global__ void geneticAlgorithm(curandState* states) {
 	if (threadIdx.x == 0) {
 		printBlockPopulation(blockPopulation);
 		printf("Epochs have been completed. Here's the block's best output:");
-		bubbleSort(blockPopulation);
+
+		quickSort(blockPopulation, 0, THREADS_PER_BLOCK - 1);
+//		bubbleSort(blockPopulation);
 		for (int j = 0; j < GENOME_LENGTH; j++) {
 			printf("%lf ", blockPopulation[0].genes[j]);
 		}
@@ -166,13 +208,13 @@ int main() {
 	setupRandomStream<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(time(NULL),
 			d_randomStates);
 	cudaDeviceSynchronize();
-	printf("%s", cudaGetErrorString(cudaGetLastError()));
+	printf("CudaStatus: %s\n", cudaGetErrorString(cudaGetLastError()));
 
 	geneticAlgorithm<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(d_randomStates);
 
 // Freeing the resources.
 	cudaDeviceSynchronize();
-	printf("%s", cudaGetErrorString(cudaGetLastError()));
+	printf("CudaStatus: %s\n", cudaGetErrorString(cudaGetLastError()));
 	cudaFree(d_randomStates);
 
 	return 0;
