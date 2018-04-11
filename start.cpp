@@ -9,7 +9,7 @@ using namespace std;
 typedef long double HighlyPrecise;
 
 const int GENOME_LENGTH = 16;
-const int NUMBER_CHROMOSOMES = 100;
+const int NUMBER_CHROMOSOMES = 320;
 
 const double GENE_MIN = -1;
 const double GENE_MAX = +1;
