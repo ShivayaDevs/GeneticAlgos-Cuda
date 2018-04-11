@@ -66,6 +66,12 @@ public:
 				offspringGenes[i] = b.getGenes()[i];
 			}
 		}
+		Chromosome offspring(offspringGenes);
+//		if(offspring.getFitnessValue() == getFitnessValue() || offspring.getFitnessValue() == b.getFitnessValue()) {
+//			printf("Baccha on maa baap\n");
+//		} else {
+//			printf("NOT on maa baap\n");
+//		}
 		return Chromosome(offspringGenes);
 	}
 
