@@ -12,7 +12,7 @@ using namespace std;
 typedef double HighlyPrecise;
 
 const int GENOME_LENGTH = 14;
-const int GENE_MAX = 1;
+const int GENE_MAX = 10;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -32,7 +32,8 @@ __global__ void setupRandomStream(unsigned int seed, curandState* states) {
 __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
 	HighlyPrecise fitnessValue = 0;
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		fitnessValue += chromosome[i] * chromosome[i];
+		// abs(x sin(x) + 0.1 x)
+		fitnessValue += abs(chromosome[i] * sin(chromosome[i]) + 0.1 * chromosome[i]);
 	}
 	return fitnessValue;
 }

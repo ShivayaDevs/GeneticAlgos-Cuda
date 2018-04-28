@@ -11,8 +11,8 @@ typedef long double HighlyPrecise;
 const int GENOME_LENGTH = 16;
 const int NUMBER_CHROMOSOMES = 320;
 
-const double GENE_MIN = -1;
-const double GENE_MAX = +1;
+const double GENE_MIN = -10;
+const double GENE_MAX = +10;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -49,7 +49,8 @@ public:
 	HighlyPrecise getFitnessValue() {
 		HighlyPrecise value = 0.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			value += genes[i] * genes[i];
+			// abs(x sin(x) + 0.1 x)
+			value += abs(genes[i] * sin(genes[i]) + 0.1 * genes[i]);
 		}
 		return value;
 	}
