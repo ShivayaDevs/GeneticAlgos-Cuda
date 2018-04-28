@@ -12,7 +12,7 @@ using namespace std;
 typedef double HighlyPrecise;
 
 const int GENOME_LENGTH = 14;
-const int GENE_MAX = 1;
+const int GENE_MAX = 100;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
