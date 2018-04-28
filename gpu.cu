@@ -31,7 +31,7 @@ __global__ void setupRandomStream(unsigned int seed, curandState* states) {
 __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
 	HighlyPrecise fitnessValue = 0;
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		fitnessValue += chromosome[i] * chromosome[i];
+		fitnessValue += pow(chromosome[i], 4);
 	}
 	return fitnessValue;
 }
