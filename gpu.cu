@@ -6,13 +6,13 @@
 #include <time.h>
 using namespace std;
 
-#define THREADS_PER_BLOCK 32
-#define NUM_BLOCKS 32
+#define THREADS_PER_BLOCK 64
+#define NUM_BLOCKS 64
 
 typedef double HighlyPrecise;
 
-const int GENOME_LENGTH = 14;
-const int GENE_MAX = 1;
+const int GENOME_LENGTH = 8;
+const int GENE_MAX = 10;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -32,7 +32,8 @@ __global__ void setupRandomStream(unsigned int seed, curandState* states) {
 __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
 	HighlyPrecise fitnessValue = 0;
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		fitnessValue += chromosome[i] * chromosome[i];
+		HighlyPrecise x = chromosome[i];
+		fitnessValue += abs(pow(x, 5) - 3 * pow(x, 4) + 4 * pow(x, 3) + 2 * pow(x, 2) - 10 * x - 4);
 	}
 	return fitnessValue;
 }

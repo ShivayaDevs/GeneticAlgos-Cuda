@@ -8,11 +8,11 @@
 using namespace std;
 typedef long double HighlyPrecise;
 
-const int GENOME_LENGTH = 16;
-const int NUMBER_CHROMOSOMES = 320;
+const int GENOME_LENGTH = 14;
+const int NUMBER_CHROMOSOMES = 600;
 
-const double GENE_MIN = -1;
-const double GENE_MAX = +1;
+const double GENE_MIN = -10;
+const double GENE_MAX = +10;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -49,7 +49,8 @@ public:
 	HighlyPrecise getFitnessValue() {
 		HighlyPrecise value = 0.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			value += genes[i] * genes[i];
+			HighlyPrecise x = genes[i];
+			value += abs(pow(x, 5) - 3 * pow(x, 4) + 4 * pow(x, 3) + 2 * pow(x, 2) - 10 * x - 4);
 		}
 		return value;
 	}
