@@ -7,7 +7,7 @@
 using namespace std;
 
 #define THREADS_PER_BLOCK 32
-#define NUM_BLOCKS 10
+#define NUM_BLOCKS 32
 
 typedef double HighlyPrecise;
 
