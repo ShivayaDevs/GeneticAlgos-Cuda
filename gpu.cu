@@ -12,6 +12,7 @@ using namespace std;
 typedef double HighlyPrecise;
 
 const int GENOME_LENGTH = 14;
+const int GENE_MAX = 1;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -80,7 +81,7 @@ __device__ void initializeBlockPopulation(Chromosome blockPopulation[],
 		curandState* randomState) {
 	HighlyPrecise chromosome[GENOME_LENGTH];
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		chromosome[i] = 2.0 * curand_uniform(randomState) - 1;
+		chromosome[i] = 2.0 * curand_uniform(randomState) - GENE_MAX;
 		blockPopulation[threadIdx.x].genes[i] = chromosome[i];
 	}
 	blockPopulation[threadIdx.x].fitnessValue = getFitnessValue(chromosome);
