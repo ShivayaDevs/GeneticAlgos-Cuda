@@ -21,6 +21,8 @@ const int NUM_EPOCHS = 1000;
 
 default_random_engine generator;
 uniform_real_distribution<HighlyPrecise> geneValueDistribution(GENE_MIN, GENE_MAX);
+uniform_real_distribution<HighlyPrecise> mutationFactorDistribution(0.0, 1.0);
+uniform_real_distribution<HighlyPrecise> mutationMultiplierDistribution(-0.1, 0.1);
 
 class Chromosome {
 	HighlyPrecise genes[GENOME_LENGTH];
@@ -79,7 +81,7 @@ public:
 	void mutate() {
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			/* Random Multiplier between [-0.1 to 0.1) */
-			HighlyPrecise multiplier = geneValueDistribution(generator) / 10;
+			HighlyPrecise multiplier = mutationMultiplierDistribution(generator);
 			genes[i] *= multiplier;
 			if (multiplier < -0.1 || multiplier > 0.1) {
 				printf("Multiplier is wrong. %Le", multiplier);
@@ -128,7 +130,7 @@ void startIteration(Chromosome population[]) {
 		Chromosome offspring = male.crossover(female);
 
 		// if mutation factor is greater than a random number from (0.0 to 1.0).
-		if (MUTATION_FACTOR >= abs(geneValueDistribution(generator))) {
+		if (MUTATION_FACTOR >= mutationFactorDistribution(generator)) {
 			offspring.mutate();
 		}
 		population[i] = offspring;
