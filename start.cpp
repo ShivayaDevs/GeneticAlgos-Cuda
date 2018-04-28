@@ -47,7 +47,7 @@ public:
 	HighlyPrecise getFitnessValue() {
 		HighlyPrecise value = 0.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
-			// Not using Math.pow() because of the HighPrecision required.
+			// Not using Math.pow() because of the HighPrecis
 			value += genes[i] * genes[i] * genes[i] * genes[i];
 		}
 		return value;
