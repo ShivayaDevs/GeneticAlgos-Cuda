@@ -8,8 +8,8 @@
 using namespace std;
 typedef long double HighlyPrecise;
 
-const int GENOME_LENGTH = 14;
-const int NUMBER_CHROMOSOMES = 600;
+const int GENOME_LENGTH = 16;
+const int NUMBER_CHROMOSOMES = 1024;
 
 const double GENE_MIN = -10;
 const double GENE_MAX = +10;
@@ -97,7 +97,7 @@ public:
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			printf("%Le ", genes[i]);
 		}
-		printf("\nFitness: %Le\n", getFitnessValue());
+		printf("\n\n=> Fitness: %Le\n", getFitnessValue());
 	}
 
 };
@@ -149,6 +149,7 @@ int main() {
 	Chromosome population[NUMBER_CHROMOSOMES];
 	// Start genetic algorithm.
 	Chromosome best = geneticAlgorithm(population);
+	printf("==== CPU Results ====\n");
 	best.print();
 	return 0;
 }
