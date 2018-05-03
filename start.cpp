@@ -9,10 +9,10 @@ using namespace std;
 typedef long double HighlyPrecise;
 
 const int GENOME_LENGTH = 16;
-const int NUMBER_CHROMOSOMES = 320;
+const int NUMBER_CHROMOSOMES = 1024;
 
-const double GENE_MIN = -1;
-const double GENE_MAX = +1;
+const double GENE_MIN = -2048;
+const double GENE_MAX = +2048;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -48,9 +48,15 @@ public:
 	 */
 	HighlyPrecise getFitnessValue() {
 		HighlyPrecise value = 0.0;
+		HighlyPrecise cosProducts = 1.0;
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			value += genes[i] * genes[i];
+//			printf("cos(%Le/sqrt(%d) = %Le\n", genes[i], i+1, cos(genes[i]/sqrt(i+1)));
+			cosProducts *= cos(genes[i]/sqrt(i+1));
 		}
+//		printf("value = %Le    cosProducts=%Le\n", value, cosProducts);
+		value = value/4000 - cosProducts + 1;
+//		getchar();
 		return value;
 	}
 

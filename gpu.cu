@@ -12,7 +12,7 @@ using namespace std;
 typedef double HighlyPrecise;
 
 const int GENOME_LENGTH = 14;
-const int GENE_MAX = 1;
+const int GENE_MAX = 2048;
 
 const float MUTATION_FACTOR = 0.2;
 const float CROSSOVER_RATE = 0.6;
@@ -30,11 +30,13 @@ __global__ void setupRandomStream(unsigned int seed, curandState* states) {
 }
 
 __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
-	HighlyPrecise fitnessValue = 0;
+	HighlyPrecise value = 0.0;
+	HighlyPrecise cosProducts = 1.0;
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		fitnessValue += chromosome[i] * chromosome[i];
+		value += chromosome[i] * chromosome[i];
+		cosProducts *= cos(chromosome[i] / sqrtf(i+1));
 	}
-	return fitnessValue;
+	return value / 4000 - cosProducts + 1;
 }
 
 /**
@@ -81,7 +83,7 @@ __device__ void initializeBlockPopulation(Chromosome blockPopulation[],
 		curandState* randomState) {
 	HighlyPrecise chromosome[GENOME_LENGTH];
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		chromosome[i] = 2.0 * curand_uniform(randomState) - GENE_MAX;
+		chromosome[i] = GENE_MAX * (2.0 * curand_uniform(randomState) - 1);
 		blockPopulation[threadIdx.x].genes[i] = chromosome[i];
 	}
 	blockPopulation[threadIdx.x].fitnessValue = getFitnessValue(chromosome);
@@ -236,7 +238,7 @@ int main() {
 	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * 1,
 			cudaMemcpyDeviceToHost);
 	printf("\n\n===========================\n");
-	printf("|| Final result:%e\n||", h_gpuOut[0].fitnessValue);
+	printf("|| Final result:%e\n", h_gpuOut[0].fitnessValue);
 	for (int i = 0; i < GENOME_LENGTH; i++) {
 		printf("%e ", h_gpuOut[0].genes[i]);
 	}
