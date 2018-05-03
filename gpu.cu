@@ -6,8 +6,8 @@
 #include <time.h>
 using namespace std;
 
-#define THREADS_PER_BLOCK 64
-#define NUM_BLOCKS 64
+#define THREADS_PER_BLOCK 32
+#define NUM_BLOCKS 32
 
 typedef double HighlyPrecise;
 
