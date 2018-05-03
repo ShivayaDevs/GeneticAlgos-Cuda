@@ -82,7 +82,7 @@ __device__ void initializeBlockPopulation(Chromosome blockPopulation[],
 		curandState* randomState) {
 	HighlyPrecise chromosome[GENOME_LENGTH];
 	for (int i = 0; i < GENOME_LENGTH; i++) {
-		chromosome[i] = 2.0 * curand_uniform(randomState) - GENE_MAX;
+		chromosome[i] = GENE_MAX * (2.0 * curand_uniform(randomState) - 1);
 		blockPopulation[threadIdx.x].genes[i] = chromosome[i];
 	}
 	blockPopulation[threadIdx.x].fitnessValue = getFitnessValue(chromosome);
@@ -193,24 +193,31 @@ __global__ void geneticAlgorithm(bool freshRun, Chromosome *d_inputPopulation,
 	__syncthreads();
 }
 
+void checkForCudaErrors() {
+	cudaError_t cudaError = cudaGetLastError();
+	if (cudaError != cudaSuccess) {
+		printf("Warning: %s\n", cudaGetErrorString(cudaGetLastError()));
+	}
+}
+
 int main() {
 	int NUM_TOTAL_THREADS = NUM_BLOCKS * THREADS_PER_BLOCK;
 
+	// Setup the random number generation stream on device.
 	curandState *d_randomStates = NULL;
 	cudaMalloc((void**) &d_randomStates,
 			NUM_TOTAL_THREADS * sizeof(curandState));
 	setupRandomStream<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(time(NULL),
 			d_randomStates);
 	cudaDeviceSynchronize();
-	printf("CudaStatus: %s\n", cudaGetErrorString(cudaGetLastError()));
+	checkForCudaErrors();
 
 	Chromosome *h_gpuOut = NULL;
 	Chromosome *d_outputPopulation = NULL;
 	h_gpuOut = (Chromosome*) malloc(NUM_BLOCKS * sizeof(Chromosome));
 	cudaMalloc((void**) &d_outputPopulation, NUM_BLOCKS * sizeof(Chromosome));
 	cudaDeviceSynchronize();
-	printf("CudaStatus: Allocating d_out: %s\n",
-			cudaGetErrorString(cudaGetLastError()));
+	checkForCudaErrors();
 
 	geneticAlgorithm<<<NUM_BLOCKS, THREADS_PER_BLOCK>>>(true, NULL,
 			d_randomStates, d_outputPopulation);
@@ -218,12 +225,11 @@ int main() {
 	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * NUM_BLOCKS,
 			cudaMemcpyDeviceToHost);
 
-//	stage2
+	//	stage2
 	Chromosome *d_inputPopulation;
 	cudaMalloc((void**) &d_inputPopulation, sizeof(Chromosome) * NUM_BLOCKS);
 	cudaDeviceSynchronize();
-	printf("CudaStatus: Allocating d_input: %s\n",
-			cudaGetErrorString(cudaGetLastError()));
+	checkForCudaErrors();
 
 	for (int i = 0; i < NUM_BLOCKS; i++) {
 //		printf("block %d output:%lf\n", i, h_gpuOut[i].fitnessValue);
@@ -236,15 +242,17 @@ int main() {
 
 	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * 1,
 			cudaMemcpyDeviceToHost);
-	printf("\n\n===========================\n");
-	printf("|| Final result:%e\n||", h_gpuOut[0].fitnessValue);
+	printf("======== GPU Results ========\n");
+	printf("==> Best Fitness Value: %e\n\nBest Chromosome: ", h_gpuOut[0].fitnessValue);
 	for (int i = 0; i < GENOME_LENGTH; i++) {
 		printf("%e ", h_gpuOut[0].genes[i]);
 	}
 	printf("\n");
-// Freeing the resources.
+
 	cudaDeviceSynchronize();
-	printf("CudaStatus: %s\n", cudaGetErrorString(cudaGetLastError()));
+	checkForCudaErrors();
+
+	// Freeing the resources.
 	cudaFree(d_randomStates);
 	cudaFree(d_outputPopulation);
 	return 0;
