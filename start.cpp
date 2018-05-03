@@ -102,7 +102,7 @@ public:
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			printf("%Le ", genes[i]);
 		}
-		printf("\nFitness: %Le\n", getFitnessValue());
+		printf("\n\n=> Fitness: %Le\n", getFitnessValue());
 	}
 
 };
@@ -154,6 +154,7 @@ int main() {
 	Chromosome population[NUMBER_CHROMOSOMES];
 	// Start genetic algorithm.
 	Chromosome best = geneticAlgorithm(population);
+	printf("==== CPU Results ====\n");
 	best.print();
 	return 0;
 }
