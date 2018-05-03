@@ -51,7 +51,8 @@ public:
 		for (int i = 0; i < GENOME_LENGTH; i++) {
 			value += genes[i] * genes[i];
 		}
-		return value;
+		value *= -0.5;
+		return -pow(2.7182, value);
 	}
 
 	/**

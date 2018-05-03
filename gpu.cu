@@ -34,7 +34,8 @@ __device__ HighlyPrecise getFitnessValue(HighlyPrecise chromosome[]) {
 	for (int i = 0; i < GENOME_LENGTH; i++) {
 		fitnessValue += chromosome[i] * chromosome[i];
 	}
-	return fitnessValue;
+	fitnessValue *= -0.5;
+	return -pow(2.7182, fitnessValue);
 }
 
 /**
