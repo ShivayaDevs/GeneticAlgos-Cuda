@@ -6,8 +6,8 @@
 #include <time.h>
 using namespace std;
 
-#define THREADS_PER_BLOCK 16
-#define NUM_BLOCKS 16
+#define THREADS_PER_BLOCK 10
+#define NUM_BLOCKS 1
 
 typedef double HighlyPrecise;
 
@@ -19,7 +19,7 @@ const float GENE_MIN = 0.0;
 const float MUTATION_FACTOR = 0.8;
 const float CROSSOVER_RATE = 0.4;
 
-const int NUM_EPOCHS = 200;
+const int NUM_EPOCHS = 10;
 
 const int NUM_PROJECTS = 12;
 
@@ -122,6 +122,7 @@ __device__ void printChromosomeOnDevice(Chromosome a, Project projects[],
  */
 __device__ void printBlockPopulation(Chromosome blockPopulation[], Project projects[]) {
 	for (int i = 0; i < blockDim.x; i++) {
+		printf("--ID:%d ", i);
 		printChromosomeOnDevice(blockPopulation[i], projects, false);
 	}
 }
@@ -135,7 +136,7 @@ __device__ HighlyPrecise getFitnessValue(HighlyPrecise genes[], Project projects
 	for (int i = 0; i < NUM_PROJECTS; i++) {
 		HighlyPrecise differenceInEfforts = fabs(
 				projects[i].actualEffort - getEstimatedEffort(genes, projects[i]));
-		fitnessValue += differenceInEfforts * differenceInEfforts;
+		fitnessValue += differenceInEfforts;// * differenceInEfforts;
 	}
 	printf("D_Fitness: %lf\n", fitnessValue);
 	return fitnessValue;
@@ -146,6 +147,7 @@ __device__ void initializeBlockPopulation(Chromosome blockPopulation[], curandSt
 	HighlyPrecise chromosome[GENOME_LENGTH];
 	for (int i = 0; i < GENOME_LENGTH; i++) {
 		// Changed because 0.0 to 10.0
+//		chromosome[i] = curand(randomState) % GENE_MAX;
 		chromosome[i] = curand_uniform_double(randomState) * GENE_MAX;
 		blockPopulation[threadIdx.x].genes[i] = chromosome[i];
 	}
@@ -189,9 +191,9 @@ __device__ Chromosome crossover(Chromosome blockPopulation[], curandState* rando
 	Chromosome female = blockPopulation[femaleIndex];
 	Chromosome offspring;
 
-	for (int i = 0; i < GENOME_LENGTH; i++) {
-		offspring.genes[i] = (i < GENOME_LENGTH / 2) ? male.genes[i] : female.genes[i];
-	}
+	offspring.genes[0] = male.genes[0];
+	offspring.genes[1] = female.genes[1];
+
 	return offspring;
 }
 
@@ -206,14 +208,14 @@ __device__ void mutate(Chromosome *offspring, curandState* randomState) {
 __device__ void startIteration(Chromosome blockPopulation[], curandState* randomState,
 		Project projects[]) {
 
-	int num_parents = blockDim.x * (1 - CROSSOVER_RATE);
+	int num_parents = ceil(blockDim.x * (1 - CROSSOVER_RATE));
 
 	// Start choosing parents and fill the remaining.
 	if (threadIdx.x >= num_parents) {
 		// Crossover.
 		Chromosome offspring = crossover(blockPopulation, randomState, num_parents);
 		// Mutation.
-		if (MUTATION_FACTOR > curand_uniform(randomState)) {
+		if (MUTATION_FACTOR > curand_uniform_double(randomState)) {
 			mutate(&offspring, randomState);
 		}
 		// Evaluation.
@@ -242,7 +244,7 @@ __global__ void geneticAlgorithm(bool freshRun, Chromosome *d_inputPopulation, c
 
 	if (freshRun) {
 		// Because this is a stage 1 run, we need to initialize the random population on GPU.
-		initializeBlockPopulation(blockPopulation, states, projects);
+		initializeBlockPopulation(blockPopulation, &randomState, projects);
 	} else {
 		blockPopulation[threadIdx.x] = d_inputPopulation[threadIndex];
 	}
@@ -262,6 +264,9 @@ __global__ void geneticAlgorithm(bool freshRun, Chromosome *d_inputPopulation, c
 		__syncthreads();
 		printf("\n=>GPU Iteration %d has completed:", z);
 		printBlockPopulation(blockPopulation, projects);
+		printf("=Iteration %d has printed\n", z);
+		__syncthreads();
+
 	}
 
 	// all threads of this block have completed.
