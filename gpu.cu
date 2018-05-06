@@ -133,10 +133,6 @@ __device__ void startIteration(Chromosome blockPopulation[],
 		blockPopulation[threadIdx.x] = offspring;
 	}
 }
-//
-//__device__ setupBlockPopulation(Chromosome blockPopulation[], curandState* states) {
-//
-//}
 
 /**
  * Core genetic algorithm.
@@ -181,12 +177,9 @@ __global__ void geneticAlgorithm(bool freshRun, Chromosome *d_inputPopulation,
 	__syncthreads();
 
 	if (threadIdx.x == 0) {
-//		printBlockPopulation(blockPopulation);
-//		printf("Epochs have been completed. Here's the block's best output:\n");
 		bubbleSort(blockPopulation);
-//		printChromosome(blockPopulation[0]);
 
-// Copy these results to the global memory.
+		// Copy these results to the global memory.
 		d_outputPopulation[blockIndex] = blockPopulation[0];
 	}
 	__syncthreads();
@@ -230,9 +223,6 @@ int main() {
 	cudaDeviceSynchronize();
 	checkForCudaErrors();
 
-	for (int i = 0; i < NUM_BLOCKS; i++) {
-//		printf("block %d output:%lf\n", i, h_gpuOut[i].fitnessValue);
-	}
 	cudaMemcpy(d_inputPopulation, h_gpuOut, sizeof(Chromosome) * NUM_BLOCKS,
 			cudaMemcpyHostToDevice);
 

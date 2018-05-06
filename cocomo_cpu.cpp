@@ -25,8 +25,7 @@ HighlyPrecise kiloLinesOfCode[NUM_PROJECTS];
 HighlyPrecise actualEfforts[NUM_PROJECTS];
 
 default_random_engine generator;
-uniform_real_distribution<HighlyPrecise> geneValueDistribution(GENE_MIN,
-		GENE_MAX);
+uniform_real_distribution<HighlyPrecise> geneValueDistribution(GENE_MIN, GENE_MAX);
 uniform_real_distribution<HighlyPrecise> geneValueDistribution2(0, 1);
 
 class Chromosome {

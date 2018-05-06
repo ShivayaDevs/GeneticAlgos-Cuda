@@ -55,10 +55,8 @@ Project* loadDatasetIntoGPU() {
 		printf("ERROR: Unable to open dataset file.");
 		return NULL;
 	}
-//	printf("==> Training data:\nKLOC\t\tActualEffort\n");
 	for (int i = 0; i < NUM_PROJECTS && !feof(fp); i++) {
 		fscanf(fp, "%lf %lf", &h_projects[i].kloc, &h_projects[i].actualEffort);
-//		printf("%lf\t%lf\n", h_projects[i].kloc, h_projects[i].actualEffort);
 	}
 	fclose(fp);
 	cudaMemcpy(d_projects, h_projects, sizeof(Project) * NUM_PROJECTS, cudaMemcpyHostToDevice);
@@ -323,18 +321,6 @@ int main() {
 		printChromosome(h_gpuOut[i], true);
 	}
 	printf("\n");
-
-//	cudaMemcpy(d_inputPopulation, h_gpuOut, sizeof(Chromosome) * NUM_BLOCKS,
-//			cudaMemcpyHostToDevice);
-
-//	geneticAlgorithm<<<1, NUM_BLOCKS>>>(false, d_inputPopulation, d_randomStates, d_projects,
-//			d_outputPopulation);
-
-//	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * 1, cudaMemcpyDeviceToHost);
-//
-//	printf("\n======== GPU Results ========\n");
-//	printChromosome(h_gpuOut[0], true);
-//	printf("\n");
 
 	cudaDeviceSynchronize();
 	checkForCudaErrors();
