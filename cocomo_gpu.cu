@@ -6,20 +6,20 @@
 #include <time.h>
 using namespace std;
 
-#define THREADS_PER_BLOCK 10
+#define THREADS_PER_BLOCK 50
 #define NUM_BLOCKS 1
 
 typedef double HighlyPrecise;
 
 const int GENOME_LENGTH = 2;
-const float GENE_MAX = 10.0f;
+const float GENE_MAX = 5.0f;
 const float GENE_MIN = 0.0;
 
 // TODO: Adjust as per CPU code.
 const float MUTATION_FACTOR = 0.8;
 const float CROSSOVER_RATE = 0.4;
 
-const int NUM_EPOCHS = 10;
+const int NUM_EPOCHS = 50;
 
 const int NUM_PROJECTS = 12;
 
@@ -324,17 +324,17 @@ int main() {
 	}
 	printf("\n");
 
-	cudaMemcpy(d_inputPopulation, h_gpuOut, sizeof(Chromosome) * NUM_BLOCKS,
-			cudaMemcpyHostToDevice);
+//	cudaMemcpy(d_inputPopulation, h_gpuOut, sizeof(Chromosome) * NUM_BLOCKS,
+//			cudaMemcpyHostToDevice);
 
-	geneticAlgorithm<<<1, NUM_BLOCKS>>>(false, d_inputPopulation, d_randomStates, d_projects,
-			d_outputPopulation);
+//	geneticAlgorithm<<<1, NUM_BLOCKS>>>(false, d_inputPopulation, d_randomStates, d_projects,
+//			d_outputPopulation);
 
-	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * 1, cudaMemcpyDeviceToHost);
-
-	printf("\n======== GPU Results ========\n");
-	printChromosome(h_gpuOut[0], true);
-	printf("\n");
+//	cudaMemcpy(h_gpuOut, d_outputPopulation, sizeof(Chromosome) * 1, cudaMemcpyDeviceToHost);
+//
+//	printf("\n======== GPU Results ========\n");
+//	printChromosome(h_gpuOut[0], true);
+//	printf("\n");
 
 	cudaDeviceSynchronize();
 	checkForCudaErrors();
